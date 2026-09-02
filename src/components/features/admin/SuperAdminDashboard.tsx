@@ -103,24 +103,25 @@ export function SuperAdminDashboard({ currentUser: _currentUser }: { currentUser
               <label className="block text-sm font-medium mb-1 text-slate-700">Nome da Empresa</label>
               <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-slate-500" placeholder="Ex: Acme Corp" />
             </div>
-            {!isEditing && (
-              <>
-                <div>
+            <div>
                   <label className="block text-sm font-medium mb-1 text-slate-700">Email do Admin</label>
                   <input required type="email" value={formData.adminEmail} onChange={e => setFormData({...formData, adminEmail: e.target.value})} className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-slate-500" placeholder="admin@empresa.com" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-slate-700">Senha Inicial</label>
+                  <label className="block text-sm font-medium mb-1 text-slate-700">Senha do Admin</label>
                   <input required type="password" value={formData.adminPassword} onChange={e => setFormData({...formData, adminPassword: e.target.value})} className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-slate-500" placeholder="***" />
                 </div>
-              </>
-            )}
+              
             <div>
               <label className="block text-sm font-medium mb-1 text-slate-700">Cor Primária</label>
               <div className="flex space-x-2">
                 <input type="color" value={formData.primaryColor} onChange={e => setFormData({...formData, primaryColor: e.target.value})} className="h-10 w-16 p-1 border border-slate-300 rounded cursor-pointer" />
                 <input type="text" value={formData.primaryColor} onChange={e => setFormData({...formData, primaryColor: e.target.value})} className="w-full p-2 border border-slate-300 rounded font-mono uppercase focus:ring-2 focus:ring-slate-500" placeholder="#000000" />
               </div>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-1 text-slate-700">Template URL Personalizado (Background)</label>
+              <input type="url" value={formData.customTemplateUrl || ''} onChange={e => setFormData({...formData, customTemplateUrl: e.target.value})} className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-slate-500" placeholder="https://exemplo.com/fundo-a4.png" />
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium mb-1 text-slate-700">Logo URL (Opcional)</label>

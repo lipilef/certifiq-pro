@@ -1,4 +1,4 @@
-const fs = require('fs');
+import fs from 'fs';
 
 async function createSuperUser() {
     // Pegando as chaves do .env se existirem, caso contrário usa o mock
@@ -36,7 +36,7 @@ async function createSuperUser() {
 
     console.log("⏳ Criando super usuário no banco de dados...");
 
-    const res = await fetch(`${BASE_URL}/certifiq_users`, {
+    const res = await fetch(`${BASE_URL}/certifiq_users/${newUser.id}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
