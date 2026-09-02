@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { db, initDB } from '../db';
 import { Company, User, Course, Signee, Certificate } from '../../types';
 
@@ -26,6 +26,19 @@ describe('json-storage-db Unit Tests', () => {
   beforeAll(async () => {
     // Ensure DB is initialized
     await initDB();
+  });
+
+  afterAll(async () => {
+    // Clean up all test data from json-storage-db
+    try {
+      await db.deleteCertificate(testCertId);
+      await db.deleteSignee(testSigneeId);
+      await db.deleteCourse(testCourseId);
+      await db.deleteUser(testUserId);
+      await db.deleteCompany(testCompanyId);
+    } catch (err) {
+      console.error('Error cleaning up unit test data:', err);
+    }
   });
 
   it('should initialize and retrieve default companies', async () => {

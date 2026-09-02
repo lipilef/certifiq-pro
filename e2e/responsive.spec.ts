@@ -2,30 +2,30 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Responsiveness & Layout Tests across Viewports', () => {
 
-  test('Login Screen fits viewport with no horizontal overflow', async ({ page }) => {
+  test('Landing Page renders hero, client showcase and validator with no horizontal overflow', async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
-    // Verify main brand heading and form elements
+    // Verify Brand, Hero heading and CTA
     await expect(page.locator('text=CertifiqPRO').first()).toBeVisible();
-    await expect(page.locator('input[type="email"]')).toBeVisible();
-    await expect(page.locator('input[type="password"]')).toBeVisible();
-    await expect(page.locator('button:has-text("Entrar na Plataforma")')).toBeVisible();
+    await expect(page.locator('h1:has-text("Emissão e Validação Segura")')).toBeVisible();
+    await expect(page.locator('h2:has-text("Instituições Conectadas")')).toBeVisible();
+    await expect(page.locator('h2:has-text("Validação Pública Instantânea")')).toBeVisible();
 
-    // Verify "Validar um Certificado" button is accessible
-    const validateBtn = page.locator('button:has-text("Validar um Certificado")');
-    await expect(validateBtn).toBeVisible();
+    // Verify login button exists
+    const enterBtn = page.locator('button:has-text("Entrar na Plataforma")').first();
+    await expect(enterBtn).toBeVisible();
 
     // Verify viewport horizontal scroll width does not exceed window
     const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
     const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
-    expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 5); // Tolerates subpixel rounding
+    expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 5);
   });
 
   test('Public Validation Screen and Deep-linking responsiveness', async ({ page }) => {
     // Navigate with deep-link query parameter
     await page.goto('/?validar=test_invalid_code_123');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await expect(page.locator('text=Validação Pública')).toBeVisible();
     await expect(page.locator('button:has-text("Voltar ao Login")')).toBeVisible();
@@ -33,16 +33,20 @@ test.describe('Responsiveness & Layout Tests across Viewports', () => {
     // Verify validation result renders
     await expect(page.locator('text=Certificado Inválido')).toBeVisible();
 
-    // Test Back button
+    // Test Back button returns to Landing
     await page.click('button:has-text("Voltar ao Login")');
-    await expect(page.locator('text=Entrar na Plataforma')).toBeVisible();
+    await expect(page.locator('h1:has-text("Emissão e Validação Segura")')).toBeVisible();
   });
 
-  test('Super Admin Dashboard responsive layout and table scrolling', async ({ page }) => {
+  test('Super Admin Dashboard login via modal and responsive layout', async ({ page }) => {
     await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('button:has-text("Entrar na Plataforma")').first().click();
+    
+    await expect(page.locator('h3:has-text("Acessar Plataforma")')).toBeVisible();
     await page.fill('input[type="email"]', 'super@certifiq.pro');
     await page.fill('input[type="password"]', 'admin');
-    await page.click('button:has-text("Entrar na Plataforma")');
+    await page.click('button[type="submit"]:has-text("Entrar na Plataforma")');
 
     // Check dashboard loaded
     await expect(page.locator('text=Gestão de Clientes (Tenants)')).toBeVisible();
@@ -60,14 +64,17 @@ test.describe('Responsiveness & Layout Tests across Viewports', () => {
 
     // Logout
     await page.click('button:has-text("Sair")');
-    await expect(page.locator('text=Entrar na Plataforma')).toBeVisible();
+    await expect(page.locator('h1:has-text("Emissão e Validação Segura")')).toBeVisible();
   });
 
   test('Company Admin Dashboard tabs and navigation responsiveness', async ({ page }) => {
     await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('button:has-text("Entrar na Plataforma")').first().click();
+    
     await page.fill('input[type="email"]', 'admin@tech.com');
     await page.fill('input[type="password"]', '123');
-    await page.click('button:has-text("Entrar na Plataforma")');
+    await page.click('button[type="submit"]:has-text("Entrar na Plataforma")');
 
     await expect(page.locator('text=Olá, Admin Tech Educação')).toBeVisible();
 
@@ -77,19 +84,22 @@ test.describe('Responsiveness & Layout Tests across Viewports', () => {
       const tabButton = page.locator(`button:has-text("${tab}")`).first();
       await expect(tabButton).toBeVisible();
       await tabButton.click();
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(50);
     }
 
     // Logout
     await page.click('button:has-text("Sair")');
-    await expect(page.locator('text=Entrar na Plataforma')).toBeVisible();
+    await expect(page.locator('h1:has-text("Emissão e Validação Segura")')).toBeVisible();
   });
 
   test('Student Dashboard & Certificate preview container responsiveness', async ({ page }) => {
     await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('button:has-text("Entrar na Plataforma")').first().click();
+    
     await page.fill('input[type="email"]', 'joao@aluno.com');
     await page.fill('input[type="password"]', '123');
-    await page.click('button:has-text("Entrar na Plataforma")');
+    await page.click('button[type="submit"]:has-text("Entrar na Plataforma")');
 
     await expect(page.locator('text=Olá, João Silva')).toBeVisible();
     await expect(page.locator('button:has-text("Meus Certificados")')).toBeVisible();
@@ -105,6 +115,6 @@ test.describe('Responsiveness & Layout Tests across Viewports', () => {
 
     // Logout
     await page.click('button:has-text("Sair")');
-    await expect(page.locator('text=Entrar na Plataforma')).toBeVisible();
+    await expect(page.locator('h1:has-text("Emissão e Validação Segura")')).toBeVisible();
   });
 });

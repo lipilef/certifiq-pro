@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+}
+
 @media print {
   @page {
     size: A4 landscape;
@@ -10,6 +20,7 @@
     padding: 0;
     width: 100%;
     height: 100%;
+    overflow: visible;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -23,6 +34,6 @@
 
 @layer base {
   body {
-    @apply antialiased bg-gray-50;
+    font-family: var(--font-sans);
   }
 }

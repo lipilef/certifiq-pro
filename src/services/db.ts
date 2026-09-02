@@ -172,5 +172,8 @@ export const db = {
   },
   async saveCertificate(cert: Certificate): Promise<void> {
     return upsertDoc<Certificate>('certifiq_certificates', cert);
+  },
+  async deleteCertificate(id: string): Promise<void> {
+    return deleteDoc('certifiq_certificates', id);
   }
 };
