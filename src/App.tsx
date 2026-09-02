@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Company } from './types';
 import { auth } from './services/auth';
-import { db } from './services/db';
+import { db, initDB } from './services/db';
 import { LoginScreen } from './components/features/auth/LoginScreen';
 import { PublicValidationScreen } from './components/features/auth/PublicValidationScreen';
 import { SuperAdminDashboard } from './components/features/admin/SuperAdminDashboard';
@@ -13,9 +13,21 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [tenantCompany, setTenantCompany] = useState<Company | null>(null);
   const [isValidationMode, setIsValidationMode] = useState(false);
+  const [initialCertId, setInitialCertId] = useState<string>('');
 
   useEffect(() => {
     const loadInitData = async () => {
+      // Initialize remote database if needed
+      await initDB();
+
+      // Check URL query parameters for validation deep links (?validar=cert_xxx or ?cert=cert_xxx or ?id=cert_xxx)
+      const params = new URLSearchParams(window.location.search);
+      const queryCertId = params.get('validar') || params.get('cert') || params.get('id');
+      if (queryCertId) {
+        setInitialCertId(queryCertId.trim());
+        setIsValidationMode(true);
+      }
+
       const user = auth.getCurrentUser();
       if (user) {
         setCurrentUser(user);
@@ -44,12 +56,30 @@ export default function App() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50">Carregando Plataforma...</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-slate-700">
+        <div className="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="font-medium text-sm">Carregando Plataforma...</p>
+      </div>
+    );
   }
 
   if (!currentUser) {
     if (isValidationMode) {
-      return <PublicValidationScreen onBack={() => setIsValidationMode(false)} />;
+      return (
+        <PublicValidationScreen 
+          initialCertId={initialCertId} 
+          onBack={() => {
+            setIsValidationMode(false);
+            setInitialCertId('');
+            // Clean up URL query param if present
+            if (window.history.pushState) {
+              const cleanUrl = window.location.pathname;
+              window.history.pushState(null, '', cleanUrl);
+            }
+          }} 
+        />
+      );
     }
     return (
       <>
@@ -57,7 +87,7 @@ export default function App() {
         <div className="fixed bottom-4 right-4 z-50">
            <button 
              onClick={() => setIsValidationMode(true)}
-             className="bg-white text-slate-800 shadow-lg px-4 py-2 rounded-full font-medium text-sm border hover:bg-gray-50"
+             className="bg-white text-slate-800 shadow-lg px-4 py-2 rounded-full font-medium text-sm border hover:bg-gray-50 transition-colors"
            >
              Validar um Certificado &rarr;
            </button>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Award, Clock, FileText, Printer, Download } from 'lucide-react';
+import { Award, Clock, FileText, Download } from 'lucide-react';
 import { User, Certificate, Course, Company, Signee } from '../../../types';
 import { db } from '../../../services/db';
 import { CertificateRenderer } from '../certificate/CertificateRenderer';

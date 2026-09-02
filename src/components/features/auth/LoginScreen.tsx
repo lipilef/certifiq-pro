@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Award, User as UserIcon, Lock, Mail } from 'lucide-react';
+import { Award, Lock, Mail } from 'lucide-react';
 import { auth } from '../../../services/auth';
 import { User } from '../../../types';
 
