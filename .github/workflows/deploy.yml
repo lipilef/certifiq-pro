@@ -27,7 +27,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - name: Install Dependencies
@@ -40,7 +40,9 @@ jobs:
           VITE_JSON_DB_API_KEY: 1b4a19fdc1eda3f481543b0f25b01ab428e0f6467ad7c9c1
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
