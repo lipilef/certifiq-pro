@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Company, Signee, Course, Certificate } from '../../../types';
 import { db } from '../../../services/db';
-import { Settings, Users, Award, BookOpen, Plus, FileText } from 'lucide-react';
+import { Settings, Users, Award, BookOpen, FileText } from 'lucide-react';
 
 interface CompanyDashboardProps {
   currentUser: User;
@@ -209,7 +209,13 @@ function ManageCourses({ companyId, color }: any) {
     setCourses(all);
   };
 
-  useEffect(() => { loadCourses(); }, [companyId]);
+  useEffect(() => { 
+    let isMounted = true;
+    db.getCoursesByCompany(companyId).then(all => {
+      if (isMounted) setCourses(all);
+    });
+    return () => { isMounted = false; };
+  }, [companyId]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -219,7 +225,7 @@ function ManageCourses({ companyId, color }: any) {
       ...formData
     };
     await db.saveCourse(newCourse);
-    loadCourses();
+    await loadCourses();
     setIsCreating(false);
     setFormData({ title: '', hours: 10, syllabus: '', templateStyle: 'classic' });
   };
@@ -227,7 +233,7 @@ function ManageCourses({ companyId, color }: any) {
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja deletar este curso?')) {
         await db.deleteCourse(id);
-        loadCourses();
+        await loadCourses();
     }
   };
 
@@ -306,7 +312,13 @@ function ManageStudents({ companyId, color }: any) {
     setUsers(all.filter(u => u.companyId === companyId && u.role === 'STUDENT'));
   };
 
-  useEffect(() => { loadUsers(); }, [companyId]);
+  useEffect(() => { 
+    let isMounted = true;
+    db.getUsers().then(all => {
+      if (isMounted) setUsers(all.filter(u => u.companyId === companyId && u.role === 'STUDENT'));
+    });
+    return () => { isMounted = false; };
+  }, [companyId]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -317,7 +329,7 @@ function ManageStudents({ companyId, color }: any) {
       ...formData
     };
     await db.saveUser(newUser);
-    loadUsers();
+    await loadUsers();
     setIsCreating(false);
     setFormData({ name: '', email: '', cpf: '', password: '' });
   };
@@ -325,7 +337,7 @@ function ManageStudents({ companyId, color }: any) {
   const handleDelete = async (id: string) => {
     if (confirm('Deletar aluno? (Isso não deletará certificados já emitidos para ele no mock)')) {
         await db.deleteUser(id);
-        loadUsers();
+        await loadUsers();
     }
   };
 
@@ -474,7 +486,7 @@ function EmitCertificate({ companyId, signees, color }: any) {
 }
 
 
-function IssuedCertificates({ companyId, color }: any) {
+function IssuedCertificates({ companyId, color: _color }: any) {
   const [certs, setCerts] = React.useState<Certificate[]>([]);
   const [users, setUsers] = React.useState<User[]>([]);
   const [courses, setCourses] = React.useState<Course[]>([]);

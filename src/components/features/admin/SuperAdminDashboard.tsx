@@ -1,16 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { Company, User, Course } from '../../../types';
+import { Company, User } from '../../../types';
 import { db } from '../../../services/db';
 
-export function SuperAdminDashboard({ currentUser }: { currentUser: User }) {
+export function SuperAdminDashboard({ currentUser: _currentUser }: { currentUser: User }) {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>({ name: '', adminEmail: '', adminPassword: '', primaryColor: '#0f172a', logoUrl: '' });
 
-  useEffect(() => { loadData(); }, []);
+  const loadData = async () => {
+    const data = await db.getCompanies();
+    setCompanies(data);
+  };
 
-  const loadData = async () => setCompanies(await db.getCompanies());
+  useEffect(() => { 
+    let isMounted = true;
+    db.getCompanies().then(data => {
+      if (isMounted) setCompanies(data);
+    });
+    return () => { isMounted = false; };
+  }, []);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();

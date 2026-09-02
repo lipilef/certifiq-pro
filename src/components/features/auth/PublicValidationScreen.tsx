@@ -1,34 +1,102 @@
-import React, { useState } from 'react';
-import { Award, Search, CheckCircle, XCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, CheckCircle, XCircle } from 'lucide-react';
 import { db } from '../../../services/db';
 
-export function PublicValidationScreen({ onBack }: { onBack: () => void }) {
-  const [certId, setCertId] = useState('');
-  const [result, setResult] = useState<any>(null);
-  const [searched, setSearched] = useState(false);
+interface ValidationResult {
+  valid: boolean;
+  company?: string;
+  student?: string;
+  course?: string;
+  date?: string;
+}
+
+interface PublicValidationScreenProps {
+  initialCertId?: string;
+  onBack: () => void;
+}
+
+export function PublicValidationScreen({ initialCertId = '', onBack }: PublicValidationScreenProps) {
+  const [certId, setCertId] = useState(initialCertId);
+  const [result, setResult] = useState<ValidationResult | null>(null);
+  const [searched, setSearched] = useState(Boolean(initialCertId));
+  const [isValidating, setIsValidating] = useState(Boolean(initialCertId));
+
+  const runValidation = async (idToValidate: string) => {
+    if (!idToValidate.trim()) return;
+    setIsValidating(true);
+    setSearched(true);
+    
+    try {
+      const allCerts = await db.getCertificates({});
+      const cert = allCerts.find(c => c.id.trim() === idToValidate.trim());
+      
+      if (cert) {
+        const companies = await db.getCompanies();
+        const users = await db.getUsers();
+        const courses = await db.getCoursesByCompany(cert.companyId);
+        
+        setResult({
+          valid: true,
+          company: companies.find(c => c.id === cert.companyId)?.name || 'Instituição',
+          student: users.find(u => u.id === cert.studentId)?.name || 'Aluno',
+          course: courses.find(c => c.id === cert.courseId)?.title || 'Curso Concluído',
+          date: new Date(cert.issueDate).toLocaleDateString('pt-BR')
+        });
+      } else {
+        setResult({ valid: false });
+      }
+    } catch (err) {
+      console.error('Erro ao validar certificado:', err);
+      setResult({ valid: false });
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!initialCertId) return;
+    let isMounted = true;
+
+    const executeValidation = async () => {
+      try {
+        const allCerts = await db.getCertificates({});
+        const cert = allCerts.find(c => c.id.trim() === initialCertId.trim());
+        if (!isMounted) return;
+
+        if (cert) {
+          const companies = await db.getCompanies();
+          const users = await db.getUsers();
+          const courses = await db.getCoursesByCompany(cert.companyId);
+          if (!isMounted) return;
+
+          setResult({
+            valid: true,
+            company: companies.find(c => c.id === cert.companyId)?.name || 'Instituição',
+            student: users.find(u => u.id === cert.studentId)?.name || 'Aluno',
+            course: courses.find(c => c.id === cert.courseId)?.title || 'Curso Concluído',
+            date: new Date(cert.issueDate).toLocaleDateString('pt-BR')
+          });
+        } else {
+          setResult({ valid: false });
+        }
+      } catch (err) {
+        console.error('Erro ao validar certificado:', err);
+        if (isMounted) setResult({ valid: false });
+      } finally {
+        if (isMounted) {
+          setSearched(true);
+          setIsValidating(false);
+        }
+      }
+    };
+
+    executeValidation();
+    return () => { isMounted = false; };
+  }, [initialCertId]);
 
   const handleValidate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSearched(true);
-    
-    const allCerts = await db.getCertificates({});
-    const cert = allCerts.find(c => c.id === certId.trim());
-    
-    if (cert) {
-      const companies = await db.getCompanies();
-      const users = await db.getUsers();
-      const courses = await db.getCoursesByCompany(cert.companyId);
-      
-      setResult({
-        valid: true,
-        company: companies.find(c => c.id === cert.companyId)?.name,
-        student: users.find(u => u.id === cert.studentId)?.name,
-        course: courses.find(c => c.id === cert.courseId)?.title,
-        date: new Date(cert.issueDate).toLocaleDateString('pt-BR')
-      });
-    } else {
-      setResult({ valid: false });
-    }
+    await runValidation(certId);
   };
 
   return (
@@ -55,11 +123,16 @@ export function PublicValidationScreen({ onBack }: { onBack: () => void }) {
               required
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none font-mono text-center"
               placeholder="Ex: cert_1788328265940"
-              value={certId} onChange={(e) => setCertId(e.target.value)}
+              value={certId} 
+              onChange={(e) => setCertId(e.target.value)}
             />
           </div>
-          <button type="submit" className="w-full bg-slate-900 text-white font-medium py-2.5 rounded-lg hover:bg-slate-800 transition-colors">
-            Validar Agora
+          <button 
+            type="submit" 
+            disabled={isValidating}
+            className="w-full bg-slate-900 text-white font-medium py-2.5 rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50"
+          >
+            {isValidating ? 'Validando...' : 'Validar Agora'}
           </button>
         </form>
 
