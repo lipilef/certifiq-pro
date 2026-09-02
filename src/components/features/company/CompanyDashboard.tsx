@@ -79,7 +79,7 @@ function CompanySettings({ company, setCompany }: { company: Company, setCompany
   return (
     <form onSubmit={handleSave} className="space-y-5 max-w-xl">
       <h2 className="text-xl font-bold text-gray-800 border-b pb-2">Identidade Visual (White-label)</h2>
-      {saved && <div className="p-3 bg-green-100 text-green-700 rounded-md">ConfiguraÃ§Ãµes salvas com sucesso!</div>}
+      {saved && <div className="p-3 bg-green-100 text-green-700 rounded-md">Configurações salvas com sucesso!</div>}
       
       <div>
         <label className="block text-sm font-medium mb-1">Nome da Empresa</label>
@@ -88,16 +88,16 @@ function CompanySettings({ company, setCompany }: { company: Company, setCompany
       <div>
         <label className="block text-sm font-medium mb-1">URL da Logo</label>
         <input type="text" placeholder="https://..." value={formData.logoUrl || ''} onChange={e => setFormData({...formData, logoUrl: e.target.value})} className="w-full p-2 border rounded-md" />
-        <p className="text-xs text-gray-500 mt-1">Insira a URL de uma imagem para testar a substituiÃ§Ã£o da logo nos certificados.</p>
+        <p className="text-xs text-gray-500 mt-1">Insira a URL de uma imagem para testar a substituição da logo nos certificados.</p>
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Cor PrimÃ¡ria (Hexadecimal)</label>
+        <label className="block text-sm font-medium mb-1">Cor Primária (Hexadecimal)</label>
         <div className="flex space-x-2">
           <input type="color" value={formData.primaryColor || '#000000'} onChange={e => setFormData({...formData, primaryColor: e.target.value})} className="h-10 w-10 border rounded-md cursor-pointer" />
           <input type="text" value={formData.primaryColor || ''} onChange={e => setFormData({...formData, primaryColor: e.target.value})} className="flex-1 p-2 border rounded-md font-mono" />
         </div>
       </div>
-      <button type="submit" className="px-4 py-2 text-white rounded-md transition-colors" style={{ backgroundColor: formData.primaryColor || '#0f172a' }}>Salvar ConfiguraÃ§Ãµes</button>
+      <button type="submit" className="px-4 py-2 text-white rounded-md transition-colors" style={{ backgroundColor: formData.primaryColor || '#0f172a' }}>Salvar Configurações</button>
     </form>
   );
 }
@@ -146,7 +146,7 @@ function ManageSignees({ companyId, signees, setSignees, color }: any) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Nome Completo</label>
-              <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2 border rounded" placeholder="Dr. JoÃ£o Silva" />
+              <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2 border rounded" placeholder="Dr. João Silva" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Cargo</label>
@@ -155,7 +155,7 @@ function ManageSignees({ companyId, signees, setSignees, color }: any) {
             <div>
               <label className="block text-sm font-medium mb-1">Conselho (Opcional)</label>
               <select value={formData.councilType} onChange={e => setFormData({...formData, councilType: e.target.value})} className="w-full p-2 border rounded bg-white">
-                <option value="">Nenhum / NÃ£o aplicÃ¡vel</option>
+                <option value="">Nenhum / Não aplicável</option>
                 <option value="CREA">CREA</option>
                 <option value="CRM">CRM</option>
                 <option value="CRO">CRO</option>
@@ -243,21 +243,21 @@ function ManageCourses({ companyId, color }: any) {
       {isCreating && (
         <form onSubmit={handleSave} className="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200 space-y-4 max-w-xl">
           <div>
-            <label className="block text-sm font-medium mb-1">TÃ­tulo do Curso</label>
-            <input required type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full p-2 border rounded" placeholder="Ex: GestÃ£o de Projetos" />
+            <label className="block text-sm font-medium mb-1">Título do Curso</label>
+            <input required type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full p-2 border rounded" placeholder="Ex: Gestão de Projetos" />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Carga HorÃ¡ria (Horas)</label>
+            <label className="block text-sm font-medium mb-1">Carga Horária (Horas)</label>
             <input required type="number" min="1" value={formData.hours} onChange={e => setFormData({...formData, hours: Number(e.target.value)})} className="w-full p-2 border rounded" />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Ementa (ConteÃºdo ProgramÃ¡tico)</label>
-            <textarea required rows={4} value={formData.syllabus} onChange={e => setFormData({...formData, syllabus: e.target.value})} className="w-full p-2 border rounded" placeholder="MÃ³dulo 1: IntroduÃ§Ã£o..." />
+            <label className="block text-sm font-medium mb-1">Ementa (Conteúdo Programático)</label>
+            <textarea required rows={4} value={formData.syllabus} onChange={e => setFormData({...formData, syllabus: e.target.value})} className="w-full p-2 border rounded" placeholder="Módulo 1: Introdução..." />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Estilo de Template</label>
             <select value={formData.templateStyle} onChange={e => setFormData({...formData, templateStyle: e.target.value})} className="w-full p-2 border rounded bg-white">
-              <option value="classic">ClÃ¡ssico (Borda Dupla)</option>
+              <option value="classic">Clássico (Borda Dupla)</option>
               <option value="modern">Moderno (Minimalista Lateral)</option>
               <option value="minimal">Minimalista (Borda Fina)</option>
             </select>
@@ -266,14 +266,14 @@ function ManageCourses({ companyId, color }: any) {
         </form>
       )}
 
-      <div className="bg-white rounded-lg border overflow-hidden">
+      <div className="bg-white rounded-lg border overflow-x-auto">
         <table className="min-w-full text-left text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
-              <th className="p-3 border-b">TÃ­tulo</th>
+              <th className="p-3 border-b">Título</th>
               <th className="p-3 border-b">Horas</th>
               <th className="p-3 border-b">Template</th>
-              <th className="p-3 border-b">AÃ§Ãµes</th>
+              <th className="p-3 border-b">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -323,7 +323,7 @@ function ManageStudents({ companyId, color }: any) {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Deletar aluno? (Isso nÃ£o deletarÃ¡ certificados jÃ¡ emitidos para ele no mock)')) {
+    if (confirm('Deletar aluno? (Isso não deletará certificados já emitidos para ele no mock)')) {
         await db.deleteUser(id);
         loadUsers();
     }
@@ -342,7 +342,7 @@ function ManageStudents({ companyId, color }: any) {
         <form onSubmit={handleSave} className="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200 space-y-4 max-w-xl">
           <div>
             <label className="block text-sm font-medium mb-1">Nome Completo</label>
-            <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2 border rounded" placeholder="JoÃ£o da Silva" />
+            <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2 border rounded" placeholder="João da Silva" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">CPF</label>
@@ -354,27 +354,27 @@ function ManageStudents({ companyId, color }: any) {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Senha</label>
-            <input required type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full p-2 border rounded" placeholder="Senha provisÃ³ria" />
+            <input required type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full p-2 border rounded" placeholder="Senha provisória" />
           </div>
           <button type="submit" className="px-4 py-2 text-white rounded font-medium" style={{ backgroundColor: color || '#0f172a' }}>Salvar Aluno</button>
         </form>
       )}
 
-      <div className="bg-white rounded-lg border overflow-hidden">
+      <div className="bg-white rounded-lg border overflow-x-auto">
         <table className="min-w-full text-left text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
               <th className="p-3 border-b">Nome</th>
               <th className="p-3 border-b">CPF</th>
               <th className="p-3 border-b">Email</th>
-              <th className="p-3 border-b">AÃ§Ãµes</th>
+              <th className="p-3 border-b">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {users.map((u) => (
               <tr key={u.id}>
                 <td className="p-3 font-medium">{u.name}</td>
-                <td className="p-3 text-gray-600">{u.cpf || 'NÃ£o informado'}</td>
+                <td className="p-3 text-gray-600">{u.cpf || 'Não informado'}</td>
                 <td className="p-3 text-gray-600">{u.email}</td>
                 <td className="p-3 flex space-x-3">
                   <button onClick={() => { setFormData(u); setIsCreating(true); }} className="text-blue-600 hover:underline">Editar</button>
@@ -434,8 +434,8 @@ function EmitCertificate({ companyId, signees, color }: any) {
 
   return (
     <div>
-       <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">EmissÃ£o de Certificado</h2>
-       {success && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">Certificado emitido com sucesso! O aluno jÃ¡ pode acessÃ¡-lo.</div>}
+       <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Emissão de Certificado</h2>
+       {success && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">Certificado emitido com sucesso! O aluno já pode acessá-lo.</div>}
        
        <form onSubmit={handleEmit} className="space-y-4 max-w-xl">
          <div>
@@ -455,7 +455,7 @@ function EmitCertificate({ companyId, signees, color }: any) {
          </div>
 
          <div>
-           <label className="block text-sm font-medium mb-1">Assinantes que constarÃ£o no rodapÃ©:</label>
+           <label className="block text-sm font-medium mb-1">Assinantes que constarão no rodapé:</label>
            <div className="space-y-2 border p-3 rounded-lg bg-gray-50">
              {signees.map((s: Signee) => (
                <label key={s.id} className="flex items-center space-x-2">
@@ -496,7 +496,7 @@ function IssuedCertificates({ companyId, color }: any) {
       <div className="flex justify-between items-center mb-4 border-b pb-2">
         <h2 className="text-xl font-bold text-gray-800">Certificados Emitidos</h2>
       </div>
-      <div className="bg-white rounded-lg border overflow-hidden">
+      <div className="bg-white rounded-lg border overflow-x-auto">
         <table className="min-w-full text-left text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>

@@ -89,7 +89,7 @@ export function SuperAdminDashboard({ currentUser }: { currentUser: User }) {
         </form>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
         <div className="overflow-x-auto">
           <table className="min-w-full text-left">
             <thead>
@@ -162,7 +162,7 @@ function AllCertificatesList() {
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mt-8">
       <h2 className="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Todos os Certificados Emitidos na Plataforma</h2>
-      <div className="overflow-hidden rounded-lg border">
+      <div className="overflow-x-auto rounded-lg border">
         <table className="min-w-full text-left text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
