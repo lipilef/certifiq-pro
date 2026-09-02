@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+  body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Oculta tudo que não for a área de impressão do certificado */
+  body > div:first-child > header,
+  body > div:first-child > main > div > div.print\:hidden {
+    display: none !important;
+  }
+}
+
+@layer base {
+  body {
+    @apply antialiased bg-gray-50;
+  }
+}
