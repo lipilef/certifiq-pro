@@ -1,4 +1,4 @@
-export type Role = 'SUPER_ADMIN' | 'COMPANY_ADMIN' | 'STUDENT';
+export type Role = 'SUPER_ADMIN' | 'COMPANY_ADMIN' | 'SECRETARY' | 'STUDENT';
 
 export interface CustomFieldDef {
   key: string;

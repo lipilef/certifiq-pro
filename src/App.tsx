@@ -120,7 +120,7 @@ export default function App() {
       
       <main className="flex-1 p-4 sm:p-8 w-full max-w-7xl mx-auto">
         {currentUser.role === 'SUPER_ADMIN' && <SuperAdminDashboard currentUser={currentUser} />}
-        {currentUser.role === 'COMPANY_ADMIN' && <CompanyDashboard currentUser={currentUser} />}
+        {['COMPANY_ADMIN', 'SECRETARY'].includes(currentUser.role) && <CompanyDashboard currentUser={currentUser} />}
         {currentUser.role === 'STUDENT' && <ClientDashboard currentUser={currentUser} />}
       </main>
     </div>

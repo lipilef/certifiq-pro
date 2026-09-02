@@ -8,7 +8,7 @@ interface CompanyDashboardProps {
 }
 
 export function CompanyDashboard({ currentUser }: CompanyDashboardProps) {
-  const [activeTab, setActiveTab] = useState('settings');
+  const [activeTab, setActiveTab] = useState(currentUser.role === 'SECRETARY' ? 'students' : 'settings');
   const [company, setCompany] = useState<Company | null>(null);
   const [signees, setSignees] = useState<Signee[]>([]);
   
@@ -29,11 +29,15 @@ export function CompanyDashboard({ currentUser }: CompanyDashboardProps) {
     <div className="space-y-6">
       {/* Tabs Menu */}
       <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-2">
-        <TabButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={Settings} label="Identidade Visual" color={company.primaryColor} />
-          <TabButton active={activeTab === 'fields'} onClick={() => setActiveTab('fields')} icon={Settings} label="Campos Customizados" color={company.primaryColor} />
-        <TabButton active={activeTab === 'team'} onClick={() => setActiveTab('team')} icon={Users} label="Equipe (Admins)" color={company.primaryColor} />
-        <TabButton active={activeTab === 'signees'} onClick={() => setActiveTab('signees')} icon={Users} label="Assinantes" color={company.primaryColor} />
-        <TabButton active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={BookOpen} label="Cursos" color={company.primaryColor} />
+        {currentUser.role !== 'SECRETARY' && (
+           <>
+            <TabButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={Settings} label="Identidade Visual" color={company.primaryColor} />
+            <TabButton active={activeTab === 'fields'} onClick={() => setActiveTab('fields')} icon={Settings} label="Campos Customizados" color={company.primaryColor} />
+            <TabButton active={activeTab === 'team'} onClick={() => setActiveTab('team')} icon={Users} label="Equipe" color={company.primaryColor} />
+            <TabButton active={activeTab === 'signees'} onClick={() => setActiveTab('signees')} icon={Users} label="Assinantes" color={company.primaryColor} />
+            <TabButton active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={BookOpen} label="Cursos" color={company.primaryColor} />
+           </>
+        )}
         <TabButton active={activeTab === 'students'} onClick={() => setActiveTab('students')} icon={Users} label="Alunos" color={company.primaryColor} />
         <TabButton active={activeTab === 'emit'} onClick={() => setActiveTab('emit')} icon={Award} label="Emitir" color={company.primaryColor} />
         <TabButton active={activeTab === 'issued'} onClick={() => setActiveTab('issued')} icon={FileText} label="Emitidos" color={company.primaryColor} />
@@ -391,7 +395,7 @@ function ManageStudents({ companyId, color }: any) {
               <tr key={u.id}>
                 <td className="p-3 font-medium">{u.name}</td>
                 <td className="p-3 text-gray-600">{u.cpf || 'Não informado'}</td>
-                <td className="p-3 text-gray-600">{u.email}</td>
+                <td className="p-3 text-gray-600">{u.email}<br/><span className="text-xs font-bold text-blue-600">{u.role === 'SECRETARY' ? 'Secretaria' : 'Admin'}</span></td>
                 <td className="p-3 flex space-x-3">
                   <button onClick={() => { setFormData(u); setIsCreating(true); }} className="text-blue-600 hover:underline">Editar</button>
                   <button onClick={() => handleDelete(u.id)} className="text-red-600 hover:underline">Excluir</button>
@@ -608,7 +612,7 @@ function ManageTeam({ companyId, color }: any) {
 
   const loadUsers = async () => {
     const all = await db.getUsers();
-    setUsers(all.filter(u => u.companyId === companyId && u.role === 'COMPANY_ADMIN'));
+    setUsers(all.filter(u => u.companyId === companyId && (u.role === 'COMPANY_ADMIN' || u.role === 'SECRETARY')));
   };
 
   useEffect(() => {
@@ -620,7 +624,7 @@ function ManageTeam({ companyId, color }: any) {
     const newUser = {
       id: formData.id || 'usr_' + Date.now(),
       companyId,
-      role: 'COMPANY_ADMIN' as const,
+      role: formData.role || 'SECRETARY',
       name: formData.name,
       email: formData.email,
       password: formData.password
@@ -664,6 +668,13 @@ function ManageTeam({ companyId, color }: any) {
             <label className="block text-sm font-medium mb-1">Senha de Acesso</label>
             <input required type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full p-2 border rounded" placeholder="***" />
           </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Nível de Acesso</label>
+            <select value={formData.role || 'SECRETARY'} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full p-2 border rounded">
+               <option value="SECRETARY">Secretaria (Só alunos e emissão)</option>
+               <option value="COMPANY_ADMIN">Administrador (Acesso total da Empresa)</option>
+            </select>
+          </div>
           
           <button type="submit" className="w-full py-2 text-white rounded-md transition-colors" style={{ backgroundColor: color || '#0f172a' }}>
             Salvar Acesso
@@ -684,7 +695,7 @@ function ManageTeam({ companyId, color }: any) {
             {users.map(u => (
               <tr key={u.id}>
                 <td className="p-3 font-medium">{u.name}</td>
-                <td className="p-3 text-gray-600">{u.email}</td>
+                <td className="p-3 text-gray-600">{u.email}<br/><span className="text-xs font-bold text-blue-600">{u.role === 'SECRETARY' ? 'Secretaria' : 'Admin'}</span></td>
                 <td className="p-3 flex space-x-3">
                   <button onClick={() => { setFormData(u); setIsCreating(true); }} className="text-blue-600 hover:text-blue-800">Editar</button>
                   <button onClick={() => handleDelete(u.id)} className="text-red-600 hover:text-red-800">Remover</button>
