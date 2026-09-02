@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Award, Clock, FileText, Download } from 'lucide-react';
 import { User, Certificate, Course, Company, Signee } from '../../../types';
 import { db } from '../../../services/db';
+import { generatePDF } from '../../../utils/pdfGenerator';
 import { CertificateRenderer } from '../certificate/CertificateRenderer';
 
 
@@ -40,22 +41,14 @@ export function ClientDashboard({ currentUser }: ClientDashboardProps) {
 
   const [activeTab, setActiveTab] = useState('certificates');
 
-  const downloadPDF = (courseName: string) => {
+    const [isGenerating, setIsGenerating] = useState(false);
+
+  const downloadPDF = async (courseName: string, certId: string) => {
     if (!company || !currentUser) return;
-
-    // nome-da-empresa-nome-do-curso-nome-do-aluno-data-da-emissao.pdf
     const formattedDate = new Date().toISOString().split('T')[0];
-    const cleanStr = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
-    
+    const cleanStr = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
     const filename = `${cleanStr(company.name)}-${cleanStr(courseName)}-${cleanStr(currentUser.name)}-${formattedDate}`;
-
-    const originalTitle = document.title;
-    document.title = filename; // Isso força o navegador a usar este nome como default do PDF
-
-    setTimeout(() => {
-      window.print();
-      document.title = originalTitle; // Restaura o titulo logo apos abrir a tela de impressao
-    }, 100);
+    await generatePDF(certId, filename, setIsGenerating);
   };
 
   if (viewingCert) {
@@ -75,12 +68,12 @@ export function ClientDashboard({ currentUser }: ClientDashboardProps) {
             &larr; Voltar para meus certificados
           </button>
           <button 
-            onClick={() => downloadPDF(course.title)}
+            onClick={() => downloadPDF(course.title, viewingCert.id)} disabled={isGenerating}
             className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors w-full sm:w-auto shadow-sm"
             style={{ backgroundColor: company.primaryColor }}
           >
             <Download className="w-4 h-4" />
-            <span>Baixar Certificado (PDF)</span>
+            {isGenerating ? <span>Gerando PDF...</span> : <span>Baixar Certificado (PDF)</span>}
           </button>
         </div>
         

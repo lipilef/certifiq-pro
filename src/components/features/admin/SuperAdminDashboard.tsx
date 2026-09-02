@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Company, User } from '../../../types';
 import { db } from '../../../services/db';
+import { CertificateRenderer } from '../certificate/CertificateRenderer';
+import { generatePDF } from '../../../utils/pdfGenerator';
+import { Download } from 'lucide-react';
+import { Eye, X } from 'lucide-react';
 
 export function SuperAdminDashboard({ currentUser: _currentUser }: { currentUser: User }) {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [adminUserId, setAdminUserId] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>({ name: '', adminEmail: '', adminPassword: '', primaryColor: '#0f172a', logoUrl: '' });
 
   const loadData = async () => {
@@ -24,18 +29,39 @@ export function SuperAdminDashboard({ currentUser: _currentUser }: { currentUser
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isEditing) {
-      const comp = companies.find(c => c.id === isEditing);
-      if (comp) {
-        await db.saveCompany({ ...comp, name: formData.name, primaryColor: formData.primaryColor, logoUrl: formData.logoUrl });
+      await db.saveCompany({ id: isEditing, name: formData.name, primaryColor: formData.primaryColor, logoUrl: formData.logoUrl, customTemplateUrl: formData.customTemplateUrl });
+      if (adminUserId) {
+        const allUsers = await db.getUsers();
+        const adminUser = allUsers.find(u => u.id === adminUserId);
+        if (adminUser) {
+           await db.saveUser({ ...adminUser, email: formData.adminEmail, password: formData.adminPassword });
+        }
+      } else {
+        await db.saveUser({
+          id: 'usr_' + Date.now(),
+          role: 'COMPANY_ADMIN',
+          name: 'Admin ' + formData.name,
+          email: formData.adminEmail,
+          password: formData.adminPassword,
+          companyId: isEditing
+        });
       }
-      setIsEditing(null);
     } else {
-      const companyId = 'comp_' + Date.now();
-      await db.saveCompany({ id: companyId, name: formData.name, primaryColor: formData.primaryColor || '#0f172a', logoUrl: formData.logoUrl });
-      await db.saveUser({ id: 'usr_' + Date.now(), companyId, name: `Admin ${formData.name}`, email: formData.adminEmail, password: formData.adminPassword, role: 'COMPANY_ADMIN' });
-      setIsCreating(false);
+      const newCompanyId = 'comp_' + Date.now();
+      await db.saveCompany({ id: newCompanyId, name: formData.name, primaryColor: formData.primaryColor, logoUrl: formData.logoUrl, customTemplateUrl: formData.customTemplateUrl });
+      await db.saveUser({
+        id: 'usr_' + Date.now(),
+        role: 'COMPANY_ADMIN',
+        name: 'Admin ' + formData.name,
+        email: formData.adminEmail,
+        password: formData.adminPassword,
+        companyId: newCompanyId
+      });
     }
-    setFormData({ name: '', adminEmail: '', adminPassword: '', primaryColor: '#0f172a', logoUrl: '' });
+    setFormData({ name: '', adminEmail: '', adminPassword: '', primaryColor: '#0f172a', logoUrl: '', customTemplateUrl: '' });
+    setAdminUserId(null);
+    setIsEditing(null);
+    setIsCreating(false);
     loadData();
   };
 
@@ -52,7 +78,7 @@ export function SuperAdminDashboard({ currentUser: _currentUser }: { currentUser
           <p className="text-sm text-slate-500 mt-1">Bem-vindo ao painel Super Admin. Controle as empresas licenciadas.</p>
         </div>
         {!isEditing && (
-          <button onClick={() => { setIsCreating(!isCreating); setFormData({ name: '', adminEmail: '', adminPassword: '', primaryColor: '#0f172a', logoUrl: '' }); }} className="bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800 shadow-md">
+          <button onClick={() => { setIsCreating(!isCreating); setFormData({ name: '', adminEmail: '', adminPassword: '', primaryColor: '#0f172a', logoUrl: '', customTemplateUrl: '' }); setAdminUserId(null); }} className="bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800 shadow-md">
             {isCreating ? 'Cancelar' : '+ Nova Empresa'}
           </button>
         )}
@@ -151,6 +177,8 @@ function AllCertificatesList() {
   const [users, setUsers] = React.useState<any[]>([]);
   const [courses, setCourses] = React.useState<any[]>([]);
   const [companies, setCompanies] = React.useState<any[]>([]);
+  const [signees, setSignees] = React.useState<any[]>([]);
+  const [viewCert, setViewCert] = React.useState<any>(null);
 
   React.useEffect(() => {
     const load = async () => {
@@ -159,11 +187,13 @@ function AllCertificatesList() {
       setCompanies(await db.getCompanies());
       
       const allC = [];
+      const allS = [];
       for (const comp of await db.getCompanies()) {
-        const c = await db.getCoursesByCompany(comp.id);
-        allC.push(...c);
+        allC.push(...(await db.getCoursesByCompany(comp.id)));
+        allS.push(...(await db.getSigneesByCompany(comp.id)));
       }
       setCourses(allC);
+      setSignees(allS);
     };
     load();
   }, []);
@@ -180,6 +210,7 @@ function AllCertificatesList() {
               <th className="p-3 border-b">Aluno</th>
               <th className="p-3 border-b">Curso</th>
               <th className="p-3 border-b">Data</th>
+              <th className="p-3 border-b">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -194,13 +225,58 @@ function AllCertificatesList() {
                   <td className="p-3 font-medium">{student ? student.name : '-'}</td>
                   <td className="p-3 text-gray-600">{course ? course.title : '-'}</td>
                   <td className="p-3 text-gray-600">{new Date(cert.issueDate).toLocaleDateString('pt-BR')}</td>
+                  <td className="p-3">
+                    <button onClick={() => setViewCert({cert, course, student, company})} className="text-blue-600 hover:text-blue-800 flex items-center space-x-1">
+                      <Eye size={16} /> <span>Visualizar</span>
+                    </button>
+                  </td>
                 </tr>
               )
             })}
-            {certs.length === 0 && <tr><td colSpan={5} className="p-4 text-center text-gray-500">Nenhum certificado emitido.</td></tr>}
+            {certs.length === 0 && <tr><td colSpan={6} className="p-4 text-center text-gray-500">Nenhum certificado emitido.</td></tr>}
           </tbody>
         </table>
       </div>
+
+      {viewCert && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-gray-100 rounded-xl shadow-2xl w-full max-w-5xl my-8 relative overflow-x-auto">
+            <div className="sticky top-0 right-0 bg-white p-4 border-b flex justify-between items-center z-10">
+               <h3 className="font-bold text-lg">Visualização do Certificado</h3>
+               
+               <div className="flex items-center space-x-2">
+                 <button 
+                    onClick={() => {
+                      const cleanStr = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
+                      const filename = `${cleanStr(viewCert.company.name)}-${cleanStr(viewCert.course.title)}-${cleanStr(viewCert.student.name)}`;
+                      generatePDF(viewCert.cert.id, filename);
+                    }}
+                    className="flex items-center space-x-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium"
+                 >
+                    <Download size={16} /> <span>Baixar PDF</span>
+                 </button>
+                 <button onClick={() => setViewCert(null)} className="p-2 bg-gray-200 rounded-full hover:bg-gray-300">
+                    <X size={20} />
+                 </button>
+               </div>
+
+            </div>
+            <div className="p-8 flex justify-center min-w-[1100px]">
+               {viewCert.company && viewCert.student && viewCert.course ? (
+                 <CertificateRenderer 
+                    certificate={viewCert.cert} 
+                    company={viewCert.company}
+                    student={viewCert.student}
+                    course={viewCert.course}
+                    signees={signees.filter(s => viewCert.cert.signeeIds?.includes(s.id))}
+                 />
+               ) : (
+                 <p className="text-red-500">Dados incompletos para renderizar.</p>
+               )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

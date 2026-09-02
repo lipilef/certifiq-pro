@@ -29,7 +29,8 @@ export function CompanyDashboard({ currentUser }: CompanyDashboardProps) {
     <div className="space-y-6">
       {/* Tabs Menu */}
       <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-2">
-        <TabButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={Settings} label="White-label" color={company.primaryColor} />
+        <TabButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={Settings} label="Identidade Visual" color={company.primaryColor} />
+          <TabButton active={activeTab === 'fields'} onClick={() => setActiveTab('fields')} icon={Settings} label="Campos Customizados" color={company.primaryColor} />
         <TabButton active={activeTab === 'signees'} onClick={() => setActiveTab('signees')} icon={Users} label="Assinantes" color={company.primaryColor} />
         <TabButton active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={BookOpen} label="Cursos" color={company.primaryColor} />
         <TabButton active={activeTab === 'students'} onClick={() => setActiveTab('students')} icon={Users} label="Alunos" color={company.primaryColor} />
@@ -39,9 +40,10 @@ export function CompanyDashboard({ currentUser }: CompanyDashboardProps) {
 
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         {activeTab === 'settings' && <CompanySettings company={company} setCompany={setCompany} />}
+          {activeTab === 'fields' && <CompanyFields company={company} setCompany={setCompany} />}
         {activeTab === 'signees' && <ManageSignees companyId={company.id} signees={signees} setSignees={setSignees} color={company.primaryColor} />}
         {activeTab === 'courses' && <ManageCourses companyId={company.id} color={company.primaryColor} />}
-        {activeTab === 'students' && <ManageStudents companyId={company.id} color={company.primaryColor} />}
+        {activeTab === 'students' && <ManageStudents company={company} color={company.primaryColor} />}
         {activeTab === 'emit' && <EmitCertificate companyId={company.id} signees={signees} color={company.primaryColor} />}
         {activeTab === 'issued' && <IssuedCertificates companyId={company.id} color={company.primaryColor} />}
       </div>
@@ -534,6 +536,63 @@ function IssuedCertificates({ companyId, color: _color }: any) {
             {certs.length === 0 && <tr><td colSpan={4} className="p-4 text-center text-gray-500">Nenhum certificado emitido.</td></tr>}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+function CompanyFields({ company, setCompany }: { company: Company, setCompany: (c: Company) => void }) {
+  const [fields, setFields] = useState<{key:string, label:string, showOnCertificate:boolean}[]>(company.customFieldsDef || []);
+  const [saved, setSaved] = useState(false);
+
+  const addField = () => {
+    setFields([...fields, { key: 'custom_' + Date.now(), label: '', showOnCertificate: false }]);
+  };
+
+  const updateField = (idx: number, updates: any) => {
+    const f = [...fields];
+    f[idx] = { ...f[idx], ...updates };
+    setFields(f);
+  };
+
+  const removeField = (idx: number) => {
+    setFields(fields.filter((_, i) => i !== idx));
+  };
+
+  const saveFields = async () => {
+    const updatedCompany = { ...company, customFieldsDef: fields.filter(f => f.label.trim() !== '') };
+    await db.saveCompany(updatedCompany);
+    setCompany(updatedCompany);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  };
+
+  return (
+    <div className="space-y-4 max-w-3xl">
+      <h2 className="text-xl font-bold text-gray-800 border-b pb-2">Campos Personalizados do Aluno</h2>
+      <p className="text-sm text-gray-600">Defina campos adicionais para os alunos da sua instituição (ex: Matrícula, Cargo). Eles aparecerão no formulário de cadastro.</p>
+      
+      {saved && <div className="p-3 bg-green-100 text-green-700 rounded-md">Campos salvos com sucesso!</div>}
+      
+      <div className="space-y-3">
+        {fields.map((f, i) => (
+          <div key={i} className="flex items-center space-x-3 p-3 bg-gray-50 border rounded-lg">
+            <div className="flex-1">
+              <label className="text-xs text-gray-500 font-medium">Nome do Campo (Rótulo)</label>
+              <input type="text" value={f.label} onChange={e => updateField(i, { label: e.target.value })} className="w-full p-2 border rounded text-sm" placeholder="Ex: CPF ou Cargo" />
+            </div>
+            <div className="flex items-center space-x-2 pt-4">
+              <input type="checkbox" id={"show_"+i} checked={f.showOnCertificate} onChange={e => updateField(i, { showOnCertificate: e.target.checked })} className="w-4 h-4 text-blue-600 rounded" />
+              <label htmlFor={"show_"+i} className="text-sm text-gray-700">Exibir no Certificado</label>
+            </div>
+            <button onClick={() => removeField(i)} className="text-red-500 hover:text-red-700 text-sm font-medium pt-4 pl-2">Remover</button>
+          </div>
+        ))}
+      </div>
+      
+      <div className="flex space-x-3 pt-4 border-t">
+        <button onClick={addField} className="px-4 py-2 bg-gray-100 text-gray-700 border rounded-md hover:bg-gray-200">+ Adicionar Campo</button>
+        <button onClick={saveFields} className="px-6 py-2 text-white rounded-md transition-colors" style={{ backgroundColor: company.primaryColor || '#0f172a' }}>Salvar Campos</button>
       </div>
     </div>
   );

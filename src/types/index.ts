@@ -1,5 +1,11 @@
 export type Role = 'SUPER_ADMIN' | 'COMPANY_ADMIN' | 'STUDENT';
 
+export interface CustomFieldDef {
+  key: string;
+  label: string;
+  showOnCertificate: boolean;
+}
+
 export interface User {
   id: string;
   role: Role;
@@ -8,6 +14,7 @@ export interface User {
   cpf?: string;
   password?: string;
   companyId?: string | null; // Null for SUPER_ADMIN
+  customData?: Record<string, string>;
 }
 
 export interface Company {
@@ -16,6 +23,7 @@ export interface Company {
   logoUrl?: string;
   primaryColor?: string;
   customTemplateUrl?: string;
+  customFieldsDef?: CustomFieldDef[];
 }
 
 export interface Signee {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Award, Shield } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { Certificate, Course, Signee, User, Company } from '../../../types';
 
 interface CertificateRendererProps {
@@ -53,7 +54,7 @@ export function CertificateRenderer({ certificate, course, student, company, sig
       
       {/* PÁGINA 1: FRENTE DO CERTIFICADO */}
       <div 
-        className={`${theme.wrapper} relative mb-8 print:mb-0 print:break-after-page`}
+        id={`${certificate.id}-page1`} className={`${theme.wrapper} relative mb-8 print:mb-0 print:break-after-page`}
         style={{ width: '1123px', height: '792px' }}
       >
         {/* Custom background se for template customizado */}
@@ -102,7 +103,11 @@ export function CertificateRenderer({ certificate, course, student, company, sig
               {student.name}
             </h2>
             <p className="text-xl text-gray-700 leading-relaxed max-w-4xl mx-auto">
-              portador(a) do documento nº <strong>{student.cpf || '___.___.___-__'}</strong>, concluiu com êxito o curso de <br/>
+              portador(a) do documento nº <strong>{student.cpf || '___.___.___-__'}</strong>
+              {company.customFieldsDef?.filter(f => f.showOnCertificate).map(f => (
+                <span key={f.key}> | {f.label}: <strong>{student.customData?.[f.key] || 'N/A'}</strong></span>
+              ))}
+              , concluiu com êxito o curso de <br/>
               <strong className="font-bold text-gray-900 text-2xl mt-2 block">{course.title}</strong><br/>
               com carga horária total de <strong>{course.hours} horas</strong>.
             </p>
@@ -119,10 +124,13 @@ export function CertificateRenderer({ certificate, course, student, company, sig
               </div>
             </div>
 
-            {/* Selo Central */}
-            <div className="flex justify-center flex-1" style={{ color: primaryColor }}>
-               <Award className="w-20 h-20 opacity-80" />
+            
+            {/* QR Code */}
+            <div className="flex flex-col items-center justify-center flex-1">
+               <QRCodeSVG value={window.location.origin + '?validate=' + certificate.id} size={64} />
+               <span className="text-[9px] text-gray-500 mt-1">Escanear Validação</span>
             </div>
+
 
             {/* Assinaturas Dinâmicas (Mapeadas do DB) */}
             <div className="flex flex-1 justify-end space-x-6">
@@ -149,7 +157,7 @@ export function CertificateRenderer({ certificate, course, student, company, sig
 
       {/* PÁGINA 2: EMENTA / VERSO DO CERTIFICADO */}
       <div 
-        className={`bg-white border border-gray-200 flex flex-col p-16`}
+        id={`${certificate.id}-page2`} className={`bg-white border border-gray-200 flex flex-col p-16`}
         style={{ width: '1123px', height: '792px' }}
       >
         <div className="mb-12 border-b-2 border-gray-200 pb-8 flex justify-between items-start">
