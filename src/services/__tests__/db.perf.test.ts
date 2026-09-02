@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import { db } from '../db';
 import { Certificate } from '../../types';
 
@@ -16,6 +16,18 @@ if (typeof localStorage === 'undefined') {
 }
 
 describe('json-storage-db Performance & Benchmark Tests', () => {
+  const generatedCertIds: string[] = [];
+
+  afterAll(async () => {
+    // Clean up all generated performance test certificates
+    try {
+      for (const id of generatedCertIds) {
+        await db.deleteCertificate(id);
+      }
+    } catch (err) {
+      console.error('Error cleaning up perf test data:', err);
+    }
+  });
 
   it('Benchmark: Single collection fetch latency should be under 2000ms', async () => {
     const startTime = performance.now();
@@ -50,13 +62,12 @@ describe('json-storage-db Performance & Benchmark Tests', () => {
 
   it('Benchmark: Rapid sequential writes & query roundtrip', async () => {
     const count = 3;
-    const certIds: string[] = [];
     const timestamp = Date.now();
 
     const writeStartTime = performance.now();
     for (let i = 0; i < count; i++) {
       const certId = `cert_perf_${timestamp}_${i}`;
-      certIds.push(certId);
+      generatedCertIds.push(certId);
       const testCert: Certificate = {
         id: certId,
         studentId: '3',
@@ -78,8 +89,8 @@ describe('json-storage-db Performance & Benchmark Tests', () => {
 
     console.log(`⏱️ [Perf] Query all certificates after writes: ${readDuration.toFixed(2)}ms (Found: ${allCerts.length})`);
 
-    // Verify all written certificates exist
-    for (const id of certIds) {
+    // Verify all written certificates exist during test execution
+    for (const id of generatedCertIds) {
       expect(allCerts.some(c => c.id === id)).toBe(true);
     }
 
