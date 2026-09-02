@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { User, Company } from './types';
 import { auth } from './services/auth';
 import { db, initDB } from './services/db';
-import { LoginScreen } from './components/features/auth/LoginScreen';
+import { LandingPage } from './components/features/landing/LandingPage';
 import { PublicValidationScreen } from './components/features/auth/PublicValidationScreen';
 import { SuperAdminDashboard } from './components/features/admin/SuperAdminDashboard';
 import { ClientDashboard } from './components/features/student/ClientDashboard';
@@ -57,8 +57,8 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-slate-700">
-        <div className="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin mb-4"></div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-slate-200">
+        <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
         <p className="font-medium text-sm">Carregando Plataforma...</p>
       </div>
     );
@@ -82,17 +82,13 @@ export default function App() {
       );
     }
     return (
-      <>
-        <LoginScreen onLogin={handleLogin} />
-        <div className="fixed bottom-4 right-4 z-50">
-           <button 
-             onClick={() => setIsValidationMode(true)}
-             className="bg-white text-slate-800 shadow-lg px-4 py-2 rounded-full font-medium text-sm border hover:bg-gray-50 transition-colors"
-           >
-             Validar um Certificado &rarr;
-           </button>
-        </div>
-      </>
+      <LandingPage 
+        onLogin={handleLogin}
+        onOpenValidation={(certId) => {
+          if (certId) setInitialCertId(certId);
+          setIsValidationMode(true);
+        }}
+      />
     );
   }
 
