@@ -31,6 +31,7 @@ export function CompanyDashboard({ currentUser }: CompanyDashboardProps) {
       <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-2">
         <TabButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={Settings} label="Identidade Visual" color={company.primaryColor} />
           <TabButton active={activeTab === 'fields'} onClick={() => setActiveTab('fields')} icon={Settings} label="Campos Customizados" color={company.primaryColor} />
+        <TabButton active={activeTab === 'team'} onClick={() => setActiveTab('team')} icon={Users} label="Equipe (Admins)" color={company.primaryColor} />
         <TabButton active={activeTab === 'signees'} onClick={() => setActiveTab('signees')} icon={Users} label="Assinantes" color={company.primaryColor} />
         <TabButton active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={BookOpen} label="Cursos" color={company.primaryColor} />
         <TabButton active={activeTab === 'students'} onClick={() => setActiveTab('students')} icon={Users} label="Alunos" color={company.primaryColor} />
@@ -41,6 +42,7 @@ export function CompanyDashboard({ currentUser }: CompanyDashboardProps) {
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         {activeTab === 'settings' && <CompanySettings company={company} setCompany={setCompany} />}
           {activeTab === 'fields' && <CompanyFields company={company} setCompany={setCompany} />}
+        {activeTab === 'team' && <ManageTeam companyId={company.id} color={company.primaryColor} />}
         {activeTab === 'signees' && <ManageSignees companyId={company.id} signees={signees} setSignees={setSignees} color={company.primaryColor} />}
         {activeTab === 'courses' && <ManageCourses companyId={company.id} color={company.primaryColor} />}
         {activeTab === 'students' && <ManageStudents company={company} color={company.primaryColor} />}
@@ -593,6 +595,105 @@ function CompanyFields({ company, setCompany }: { company: Company, setCompany: 
       <div className="flex space-x-3 pt-4 border-t">
         <button onClick={addField} className="px-4 py-2 bg-gray-100 text-gray-700 border rounded-md hover:bg-gray-200">+ Adicionar Campo</button>
         <button onClick={saveFields} className="px-6 py-2 text-white rounded-md transition-colors" style={{ backgroundColor: company.primaryColor || '#0f172a' }}>Salvar Campos</button>
+      </div>
+    </div>
+  );
+}
+
+
+function ManageTeam({ companyId, color }: any) {
+  const [users, setUsers] = useState<User[]>([]);
+  const [isCreating, setIsCreating] = useState(false);
+  const [formData, setFormData] = useState<any>({ name: '', email: '', password: '' });
+
+  const loadUsers = async () => {
+    const all = await db.getUsers();
+    setUsers(all.filter(u => u.companyId === companyId && u.role === 'COMPANY_ADMIN'));
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, [companyId]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const newUser = {
+      id: formData.id || 'usr_' + Date.now(),
+      companyId,
+      role: 'COMPANY_ADMIN' as const,
+      name: formData.name,
+      email: formData.email,
+      password: formData.password
+    };
+    await db.saveUser(newUser);
+    await loadUsers();
+    setIsCreating(false);
+    setFormData({ name: '', email: '', password: '' });
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Deletar administrador?')) {
+        await db.deleteUser(id);
+        await loadUsers();
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4 border-b pb-2">
+        <div>
+           <h2 className="text-xl font-bold text-gray-800">Equipe Administrativa</h2>
+           <p className="text-sm text-gray-500">Adicione secretários(as) ou gestores para emitirem certificados.</p>
+        </div>
+        <button onClick={() => { setIsCreating(!isCreating); setFormData({ name: '', email: '', password: '' }); }} className="px-3 py-1 text-white rounded text-sm" style={{ backgroundColor: color || '#0f172a' }}>
+          {isCreating ? 'Cancelar' : '+ Novo Administrador'}
+        </button>
+      </div>
+
+      {isCreating && (
+        <form onSubmit={handleSave} className="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200 space-y-4 max-w-xl">
+          <div>
+            <label className="block text-sm font-medium mb-1">Nome</label>
+            <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2 border rounded" placeholder="Maria Secretária" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">E-mail</label>
+            <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full p-2 border rounded" placeholder="maria@instituicao.com" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Senha de Acesso</label>
+            <input required type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full p-2 border rounded" placeholder="***" />
+          </div>
+          
+          <button type="submit" className="w-full py-2 text-white rounded-md transition-colors" style={{ backgroundColor: color || '#0f172a' }}>
+            Salvar Acesso
+          </button>
+        </form>
+      )}
+
+      <div className="bg-white rounded-lg border overflow-x-auto">
+        <table className="min-w-full text-left text-sm">
+          <thead className="bg-slate-50 text-slate-600">
+            <tr>
+              <th className="p-3 border-b">Nome</th>
+              <th className="p-3 border-b">Email</th>
+              <th className="p-3 border-b">Ações</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {users.map(u => (
+              <tr key={u.id}>
+                <td className="p-3 font-medium">{u.name}</td>
+                <td className="p-3 text-gray-600">{u.email}</td>
+                <td className="p-3 flex space-x-3">
+                  <button onClick={() => { setFormData(u); setIsCreating(true); }} className="text-blue-600 hover:text-blue-800">Editar</button>
+                  <button onClick={() => handleDelete(u.id)} className="text-red-600 hover:text-red-800">Remover</button>
+                </td>
+              </tr>
+            ))}
+            {users.length === 0 && <tr><td colSpan={3} className="p-4 text-center text-gray-500">Nenhum administrador extra.</td></tr>}
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -65,8 +65,19 @@ export function SuperAdminDashboard({ currentUser: _currentUser }: { currentUser
     loadData();
   };
 
-  const handleEdit = (c: Company) => {
-    setFormData({ name: c.name, primaryColor: c.primaryColor || '#0f172a', logoUrl: c.logoUrl || '', adminEmail: '', adminPassword: '' });
+  const handleEdit = async (c: Company) => {
+    const allUsers = await db.getUsers();
+    const adminUser = allUsers.find(u => u.companyId === c.id && u.role === 'COMPANY_ADMIN');
+    
+    setFormData({ 
+      name: c.name, 
+      primaryColor: c.primaryColor || '#0f172a', 
+      logoUrl: c.logoUrl || '', 
+      adminEmail: adminUser ? adminUser.email : '', 
+      adminPassword: adminUser ? (adminUser.password || '') : '',
+      customTemplateUrl: c.customTemplateUrl || ''
+    });
+    setAdminUserId(adminUser ? adminUser.id : null);
     setIsEditing(c.id);
   };
 
